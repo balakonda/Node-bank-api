@@ -20,7 +20,7 @@ app.use(bodyParser.json());
 
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, X-Auth");
   next();
 });
 
@@ -209,7 +209,7 @@ app.post('/users/login', (req, res) => {
 	User.findByCredentials(body).then((user) => {
 		return user.generateAuthToken().then((token) => {
 			console.log('x-auth');
-			res.header('x-auth', token).send(user);
+			res.header('x-auth', token).send({user, token});
 		});
 	}).catch((e) => {
 		res.status(400).send(e);
