@@ -6,7 +6,6 @@ var TransferSchema = new mongoose.Schema({
 	accountNo: {
 		type: Number,
 		required: true,
-		unique: true,
 		minlength: 12,
 		maxlenth: 12,
 		validate : {
@@ -19,6 +18,15 @@ var TransferSchema = new mongoose.Schema({
 		required: true,
 		enum: ['Savings', 'Current'],
 		trim: true
+	},
+	transactionType: {
+		type: String,
+		required: true,
+		enum: ['Cr', 'Dr'],
+	},
+	transactionDt: {
+		type: Date,
+		required: true
 	},
 	amount: {
 		type: Number,

@@ -44,19 +44,33 @@ app.post('/todos', authenticate, (req, res) => {
 });
 
 app.post('/transfer', authenticate, (req, res) => {
-	var body = _.pick(req.body, ['accno', 'acctype', 'ifsc', 'name', 'email', 'amount']);
+	var body = _.pick(req.body, ['accno', 'acctype', 'ifsc', 'name', 'email', 'amount', 'transactionType']);
+	var timeNow = new Date().getTime();
 	var transfer = new Transfer({
 		accountNo: body.accno,
 		accountType: body.acctype,
+		transactionType: body.transactionType,
+		transactionDt: timeNow,
 		ifsc: body.ifsc,
 		recipientName: body.name,
 		recipientEmail: body.email,
 		amount: body.amount,
 		_creator: req.user._id
 	});
+	var statement;
+
 	transfer.save().then((doc) => {
+		statement = new Statement({
+			transactionType: body.transactionType,
+			transactionDt: timeNow,
+			amount: body.amount,
+			_id: doc._id,
+			_creator: req.user._id
+		});
+		return statement.save();
+	}).then(doc => {
 		res.send(doc);
-	}, (e) => {
+	}).catch((e) => {
 		res.status(400).send(e);
 	});
 });
