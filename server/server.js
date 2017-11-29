@@ -10,6 +10,7 @@ var { Todo } = require('./models/todo');
 var { Bank } = require('./models/bank-accounts');
 var { User } = require('./models/user');
 var { Statement } = require('./models/statement');
+var { Transfer } = require('./models/transfer');
 var { authenticate } = require('./middleware/authenticate');
 
 var app = express();
@@ -19,9 +20,9 @@ var PORT = process.env.PORT;
 app.use(bodyParser.json());
 
 app.use(function(req, res, next) {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, X-Auth");
-  next();
+	res.header("Access-Control-Allow-Origin", "*");
+  	res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, X-Auth");
+  	next();
 });
 
 
@@ -40,6 +41,34 @@ app.post('/todos', authenticate, (req, res) => {
 	}, (e) => {
 		res.status(400).send(e);
 	});
+});
+
+app.post('/transfer', authenticate, (req, res) => {
+	var body = _.pick(req.body, ['accno', 'acctype', 'ifsc', 'name', 'email', 'amount']);
+	var transfer = new Transfer({
+		accountNo: body.accno,
+		accountType: body.acctype,
+		ifsc: body.ifsc,
+		recipientName: body.name,
+		recipientEmail: body.email,
+		amount: body.amount,
+		_creator: req.user._id
+	});
+	transfer.save().then((doc) => {
+		res.send(doc);
+	}, (e) => {
+		res.status(400).send(e);
+	});
+});
+
+app.get('/transferList', authenticate, (req, res) => {
+	Transfer.find({
+		_creator: req.user._id
+	}).then((transferList) => {
+		res.send({ transferList });
+	}).catch((e) => {
+		res.status(400).send(e);
+	})
 });
 
 app.post('/statement', authenticate, (req, res) => {
@@ -165,7 +194,7 @@ app.patch('/todos/:id', (req, res) => {
 			res.status(400).send({message: 'Invalid Object'});
 		}
 	}).catch((e) => res.status(404).send(e));
-	
+
 });
 
 //Users Register
